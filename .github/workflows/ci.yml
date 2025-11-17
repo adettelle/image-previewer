@@ -19,7 +19,7 @@ jobs:
         go-version: '1.25.3'
 
     - name: Build
-      run: go build -v -o ./bin/server ./cmd
+      run: go build -v -o ./bin/server ./cmd/server
 
   tests:
     needs: build
