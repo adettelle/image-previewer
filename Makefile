@@ -1,6 +1,9 @@
 BIN := "./bin"
 
 test:
+	go test -count 1 ./... -v
+
+test-race:
 	go test -race -count 100 ./... -v
 
 lint: 
