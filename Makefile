@@ -14,8 +14,8 @@ vet:
 
 check: lint vet test
 
-run-server: 
-	go run ./cmd/
+run: 
+	go run ./cmd/server/
 
 build_previewer:
 	go build -v -o "$(BIN)/build_previewer" ./cmd/
