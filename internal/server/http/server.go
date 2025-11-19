@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// TODO CHECK !!!!!!!!!!! пока не используется, проверить, почему
 const pathToSaveIncommingImages = "./images/"
 
 type ImageHandler struct {
@@ -31,18 +32,37 @@ func (h *ImageHandler) preview(w http.ResponseWriter, r *http.Request) {
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	resizedImageName := originalImageName + "_" + outWidth + "_" + outHeight
 
-	_, ok := h.Storager.Get(lru.Key(resizedImageName))
-	if ok {
-		fmt.Println("Got from cache: " + imageAddr)
-		w.Header().Set("Content-Type", "image/jpeg")
-		http.ServeFile(w, r, pathToSaveIncommingImages+resizedImageName)
-		w.WriteHeader(http.StatusOK)
-		return
+	// TODO !!!!!!!!!!
+	outW, err := strconv.Atoi(outWidth)
+	if err != nil {
+		fmt.Println(err) // TODO !!!!!!!!!!
 	}
+	outH, err := strconv.Atoi(outHeight)
+	if err != nil {
+		fmt.Println(err) // TODO !!!!!!!!!!
+	}
+
+	previewService := file.New()
+
+	pathToSave, err := previewService.GeneratePreview(outW, outH, imageAddr) // x = ./images/xxx_20_10
+	if err != nil {
+		fmt.Println(err) // TODO !!!!!!!!!!
+	}
+
+	// _, ok := h.Storager.Get(lru.Key(resizedImageName))
+	// if ok {
+	// 	fmt.Println("Got from cache: " + imageAddr)
+	w.Header().Set("Content-Type", "image/jpeg")
+	// было pathToSaveIncommingImages+resizedImageName // TODO CHECK !!!!!!!!!!!
+	http.ServeFile(w, r, pathToSave+resizedImageName) // выдаём наружу
+	w.WriteHeader(http.StatusOK)
+	// return
+	// }
+	// TODO !ok !!!!!!!!!
 
 	path := "/tmp/" + originalImageName // "./images/saveas.jpg"
 
-	err := file.DownloadFile(path, imageAddr)
+	err = file.DownloadFile(path, imageAddr)
 	if err != nil {
 		fmt.Println("Error downloading file: ", err)
 		return
