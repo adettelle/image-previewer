@@ -1,4 +1,4 @@
-package file
+package previewservice
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ func DownloadFile(filePath string, url string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint
 
 	contentType := resp.Header.Get("Content-Type")
 	if strings.ToLower(contentType) != "image/jpeg" {
@@ -28,7 +28,7 @@ func DownloadFile(filePath string, url string) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer out.Close() //nolint
 
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)

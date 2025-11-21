@@ -1,11 +1,9 @@
-package file
+package previewservice
 
 import (
-	"fmt"
 	"image"
 	"image/jpeg"
-	"image/png"
-	"io"
+	"log"
 	"os"
 
 	"golang.org/x/image/draw"
@@ -21,11 +19,10 @@ import (
 // If the size of incoming image is smaller than the desired,
 // incoming image will be returned as a response.
 func Scale(path string, resizedImagePath string, outWidth int, outHeight int) error {
-	fmt.Println("path", path)
+	log.Println("path to scale:", path)
 	// Open file.
 	inputFile, err := os.Open(path)
 	if err != nil {
-		fmt.Println(" 555555555555555555 ")
 		return err
 	}
 
@@ -33,7 +30,6 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 
 	originalImage, err := jpeg.Decode(inputFile)
 	if err != nil {
-		fmt.Println(" 3333333333333333 ")
 		return err
 	}
 
@@ -60,14 +56,12 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 
 	scaledImageFile, err := os.Create(resizedImagePath)
 	if err != nil {
-		fmt.Println(" -------------- ")
 		return err
 	}
-	defer scaledImageFile.Close()
+	defer scaledImageFile.Close() //nolint
 
 	err = jpeg.Encode(scaledImageFile, dst, nil)
 	if err != nil {
-		fmt.Println(" +++++++++++++ ")
 		return err
 	}
 
@@ -90,11 +84,10 @@ type SubImager interface {
 // (outWidth and outHeight).
 // The resulting size is cropped from the center of the incomming image.
 func Crop(path string, resizedImagePath string, outWidth int, outHeight int) error {
-	fmt.Println("path", path)
+	log.Println("path", path)
 	// Open file.
 	inputFile, err := os.Open(path)
 	if err != nil {
-		fmt.Println(" 555555555555555555 ")
 		return err
 	}
 
@@ -102,7 +95,6 @@ func Crop(path string, resizedImagePath string, outWidth int, outHeight int) err
 
 	originalImage, err := jpeg.Decode(inputFile)
 	if err != nil {
-		fmt.Println(" 3333333333333333 ")
 		return err
 	}
 
@@ -123,14 +115,12 @@ func Crop(path string, resizedImagePath string, outWidth int, outHeight int) err
 
 	croppedImageFile, err := os.Create(resizedImagePath)
 	if err != nil {
-		fmt.Println(" 22222222222222 ")
 		return err
 	}
-	defer croppedImageFile.Close()
+	defer croppedImageFile.Close() //nolint
 
 	err = jpeg.Encode(croppedImageFile, croppedImage, nil)
 	if err != nil {
-		fmt.Println(" 1111111111111 ")
 		return err
 	}
 
@@ -143,91 +133,4 @@ func checkSize(outWidth, outHeight, inWidth, inHeight int) bool {
 		return true
 	}
 	return false
-}
-
-func CropOld(path string, resizedImagePath string, outWidth int, outHeight int) error {
-	fmt.Println("path", path)
-	// Open file.
-	inputFile, err := os.Open(path)
-	if err != nil {
-		fmt.Println(" 555555555555555555 ")
-		return err
-	}
-
-	// -------------------------------------------------------------------------
-
-	originalImage, err := jpeg.Decode(inputFile)
-	if err != nil {
-		fmt.Println(" 3333333333333333 ")
-		return err
-	}
-
-	bounds := originalImage.Bounds()
-	width := bounds.Dx()
-	height := bounds.Dy()
-
-	// cropSize := image.Rect(0, 0, width/2, height/2)
-	cropSize := image.Rect(width/4, height/4, width*3/4, height*3/4)
-
-	// cropSize = cropSize.Add(image.Point{100, 100})
-
-	croppedImage := originalImage.(SubImager).SubImage(cropSize)
-
-	// -------------------------------------------------------------------------
-
-	croppedImageFile, err := os.Create(resizedImagePath)
-	if err != nil {
-		fmt.Println(" 22222222222222 ")
-		return err
-	}
-	defer croppedImageFile.Close()
-
-	err = jpeg.Encode(croppedImageFile, croppedImage, nil)
-	if err != nil {
-		fmt.Println(" 1111111111111 ")
-		return err
-	}
-
-	return nil
-}
-
-func ScaleOld(r io.Reader, w io.Writer, fileType string,
-	outWidth int, outHeight int) error {
-
-	var src image.Image
-	var err error
-
-	switch fileType {
-	case "image/jpeg":
-		src, err = jpeg.Decode(r)
-	case "image/png":
-		src, err = png.Decode(r)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	inHeight := src.Bounds().Max.Y
-	inWidth := src.Bounds().Max.X
-
-	checkHeight := inHeight * outWidth / inWidth
-	checkWidth := inWidth * outHeight / inHeight
-
-	if checkHeight <= outHeight {
-		outHeight = checkHeight
-	} else if checkWidth <= outWidth {
-		outWidth = checkWidth
-	}
-
-	dst := image.NewRGBA(image.Rect(0, 0, outWidth, outHeight))
-
-	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
-
-	err = jpeg.Encode(w, dst, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

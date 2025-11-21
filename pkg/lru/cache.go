@@ -1,6 +1,8 @@
 package lru
 
-import "sync"
+import (
+	"sync"
+)
 
 type Key string
 

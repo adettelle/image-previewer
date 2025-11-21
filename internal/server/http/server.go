@@ -1,98 +1,54 @@
 package internalhttp
 
 import (
-	"encoding/base64"
-	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/adettelle/image-previewer/pkg/file"
-	"github.com/adettelle/image-previewer/pkg/lru"
+	"github.com/adettelle/image-previewer/pkg/previewservice"
 	"github.com/go-chi/chi/v5"
 )
 
-// TODO CHECK !!!!!!!!!!! пока не используется, проверить, почему
-const pathToSaveIncommingImages = "./images/"
-
 type ImageHandler struct {
-	Storager lru.LruCache
+	PreviewServise *previewservice.PreviewService
+	CacheCapacity  int
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello"))
+	log.Println("start page")
+	w.Write([]byte("Hello")) //nolint
 }
 
-func (h *ImageHandler) preview(w http.ResponseWriter, r *http.Request) {
+func (ih *ImageHandler) preview(w http.ResponseWriter, r *http.Request) {
 	outWidth := r.PathValue("width")
 	outHeight := r.PathValue("height")
 	imageAddr := "https://" + chi.URLParam(r, "*")
-	fmt.Println(outWidth, outHeight, imageAddr)
 
-	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
-	resizedImageName := originalImageName + "_" + outWidth + "_" + outHeight
-
-	// TODO !!!!!!!!!!
 	outW, err := strconv.Atoi(outWidth)
 	if err != nil {
-		fmt.Println(err) // TODO !!!!!!!!!!
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	outH, err := strconv.Atoi(outHeight)
 	if err != nil {
-		fmt.Println(err) // TODO !!!!!!!!!!
-	}
-
-	previewService := file.New()
-
-	pathToSave, err := previewService.GeneratePreview(outW, outH, imageAddr) // x = ./images/xxx_20_10
-	if err != nil {
-		fmt.Println(err) // TODO !!!!!!!!!!
-	}
-
-	// _, ok := h.Storager.Get(lru.Key(resizedImageName))
-	// if ok {
-	// 	fmt.Println("Got from cache: " + imageAddr)
-	w.Header().Set("Content-Type", "image/jpeg")
-	// было pathToSaveIncommingImages+resizedImageName // TODO CHECK !!!!!!!!!!!
-	http.ServeFile(w, r, pathToSave+resizedImageName) // выдаём наружу
-	w.WriteHeader(http.StatusOK)
-	// return
-	// }
-	// TODO !ok !!!!!!!!!
-
-	path := "/tmp/" + originalImageName // "./images/saveas.jpg"
-
-	err = file.DownloadFile(path, imageAddr)
-	if err != nil {
-		fmt.Println("Error downloading file: ", err)
-		return
-	}
-	fmt.Println("Downloaded: " + imageAddr)
-
-	outWidthInPxs, err := strconv.Atoi(outWidth)
-	if err != nil {
-		return
-	}
-	outHeightInPxs, err := strconv.Atoi(outHeight)
-	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// err = resize.Crop(path, "./images/"+resizedImageName, widthInPxs, heightInPxs)
-	// if err != nil && !errors.Is(err, &file.ResizeError{}) {
-	// 	fmt.Println("Error in cropping image: ", err)
-	// 	return
-	// }
-
-	err = file.Scale(path, pathToSaveIncommingImages+resizedImageName, outWidthInPxs, outHeightInPxs)
-	if err != nil && !errors.Is(err, &file.ResizeError{}) { // TODO CHECK
-		fmt.Println("Error in scaling image: ", err)
+	resizedImage, err := ih.PreviewServise.GeneratePreview(outW, outH, imageAddr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	h.Storager.Set(lru.Key(resizedImageName), true)
+	for key, values := range r.Header {
+		for _, value := range values {
+			// fmt.Printf("Print %s: %s\n", key, value)
+			w.Header().Set(key, value)
+		}
+	}
 
-	w.Header().Set("Content-Type", "image/jpeg")
-	http.ServeFile(w, r, "./images/"+resizedImageName)
+	w.Header().Set("Content-Type", "image/jpeg")              // TODO
+	http.ServeFile(w, r, resizedImage.Path+resizedImage.Name) // выдаём наружу // resizedImage
 	w.WriteHeader(http.StatusOK)
 }

@@ -13,7 +13,7 @@ func TestLoadConfig(t *testing.T) {
 	cfg := New(&ctx)
 	require.Equal(t, "INFO", cfg.Logger.Level)
 	require.Equal(t, "localhost", cfg.Host)
-	require.Equal(t, "postgres", cfg.Port)
-	require.Equal(t, "123456", cfg.CacheCapacity)
-	require.Equal(t, "test_db", cfg.Resize)
+	require.Equal(t, "8080", cfg.Port)
+	require.Equal(t, "5", cfg.CacheCapacity)
+	require.Equal(t, "scale", cfg.Resize)
 }

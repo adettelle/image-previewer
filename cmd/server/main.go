@@ -8,7 +8,12 @@ import (
 
 	"github.com/adettelle/image-previewer/config"
 	internalhttp "github.com/adettelle/image-previewer/internal/server/http"
-	"github.com/adettelle/image-previewer/pkg/lru"
+	"github.com/adettelle/image-previewer/pkg/previewservice"
+)
+
+const (
+	pathToSaveIncommingImages = "./images/"
+	pathToOriginalFile        = "/tmp/"
 )
 
 func main() {
@@ -16,16 +21,25 @@ func main() {
 
 	cfg := config.New(&ctx)
 
-	lruCapacity, err := strconv.Atoi(cfg.CacheCapacity)
+	cacheCapacity, err := strconv.Atoi(cfg.CacheCapacity)
 	if err != nil {
 		log.Fatal(err)
 	}
-	ih := internalhttp.ImageHandler{Storager: *lru.NewCache(lruCapacity)}
+
+	ps := previewservice.New(cacheCapacity, pathToSaveIncommingImages, pathToOriginalFile)
+
+	ih := internalhttp.ImageHandler{
+		PreviewServise: ps,
+		CacheCapacity:  cacheCapacity,
+	}
 
 	router := internalhttp.NewRouter(&ih)
 
-	addr := ":" + cfg.Port // ":8080"
+	addr := ":" + cfg.Port
 	log.Printf("starting http server at %s\n", addr)
 
-	http.ListenAndServe(addr, router)
+	err = http.ListenAndServe(addr, router)
+	if err != nil {
+		log.Fatalf("server failed: %v", err)
+	}
 }
