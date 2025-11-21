@@ -20,6 +20,8 @@ import (
 // incoming image will be returned as a response.
 func Scale(path string, resizedImagePath string, outWidth int, outHeight int) error {
 	log.Println("path to scale:", path)
+	log.Println("resizedImagePath:", resizedImagePath)
+
 	// Open file.
 	inputFile, err := os.Open(path)
 	if err != nil {
@@ -38,7 +40,25 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 
 	ok := checkSize(outWidth, outHeight, inWidth, inHeight)
 	if !ok {
-		return &ResizeError{} // fmt.Errorf("nothing to resize")
+		// nothing to resize
+		// ---------------------------------------------------------
+		// saving to pathToSaveIncommingImages "./images/"
+		dst := image.NewRGBA(image.Rect(0, 0, inWidth, inHeight))
+
+		draw.NearestNeighbor.Scale(dst, dst.Rect, originalImage, originalImage.Bounds(), draw.Over, nil)
+
+		scaledImageFile, err := os.Create(resizedImagePath)
+		if err != nil {
+			return err
+		}
+		defer scaledImageFile.Close() //nolint
+
+		err = jpeg.Encode(scaledImageFile, dst, nil)
+		if err != nil {
+			return err
+		}
+		// -----------------
+		return ResizeError{} // fmt.Errorf("nothing to resize")
 	}
 
 	checkHeight := inHeight * outWidth / inWidth
@@ -50,6 +70,8 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 		outWidth = checkWidth
 	}
 
+	// ---------------------------------------------------------
+	// saving to pathToSaveIncommingImages "./images/"
 	dst := image.NewRGBA(image.Rect(0, 0, outWidth, outHeight))
 
 	draw.NearestNeighbor.Scale(dst, dst.Rect, originalImage, originalImage.Bounds(), draw.Over, nil)
@@ -71,7 +93,7 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 type ResizeError struct {
 }
 
-func (e *ResizeError) Error() string {
+func (e ResizeError) Error() string {
 	return "nothing to resize"
 }
 

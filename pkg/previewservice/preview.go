@@ -15,10 +15,10 @@ type PreviewService struct {
 	PathToOriginalFile        string // const "/tmp/"
 }
 
-func New(cap int, path string, pathToOriginalFile string) *PreviewService {
+func New(cap int, pathToResizedImage string, pathToOriginalFile string) *PreviewService {
 	return &PreviewService{
 		Cache:                     *lru.NewCache(cap),
-		PathToSaveIncommingImages: path,
+		PathToSaveIncommingImages: pathToResizedImage,
 		PathToOriginalFile:        pathToOriginalFile,
 	}
 }
@@ -59,7 +59,7 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 	log.Println("Downloaded: " + imageAddr)
 
 	err = Scale(pathToOriginalFile, pathToResizedImage, outWidth, outHeight)
-	if err != nil && !errors.Is(err, &ResizeError{}) { // TODO CHECK
+	if err != nil && !errors.Is(err, ResizeError{}) { // TODO CHECK
 		log.Println("Error in scaling image: ", err)
 		return ResizedImage{}, err
 	}
@@ -68,8 +68,3 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 
 	return resizedImage, nil
 }
-
-// сравнивает размер картинки с размером указанным в названии
-// func countActualSize() {
-
-// }
