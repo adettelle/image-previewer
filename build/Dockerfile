@@ -4,14 +4,10 @@ WORKDIR /app
 
 COPY go.mod go.sum /app/
 
-COPY cmd /app/cmd
-
-COPY internal /app/internal
-
-COPY pkg /app/pkg
-
 RUN go mod download
+
+COPY . . 
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /previewer ./cmd/server/main.go
 
-CMD ["/previewer"]
+CMD ["/app/previewer"]

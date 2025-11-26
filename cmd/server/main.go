@@ -7,8 +7,10 @@ import (
 	"strconv"
 
 	"github.com/adettelle/image-previewer/config"
+	internallogger "github.com/adettelle/image-previewer/internal/logger"
 	"github.com/adettelle/image-previewer/internal/previewservice"
 	internalhttp "github.com/adettelle/image-previewer/internal/server/http"
+	"go.uber.org/zap"
 )
 
 const (
@@ -26,8 +28,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	addr := ":" + cfg.Port
+	logg := internallogger.GetLogger(cfg.Logger.Level)
+	logg.Info("starting http server at", zap.String("port", addr))
+
 	ds := previewservice.DownloadService{}
-	ps := previewservice.New(cacheCapacity, pathToSaveIncommingImages, pathToOriginalFile, &ds)
+	ps := previewservice.New(cacheCapacity, pathToSaveIncommingImages,
+		pathToOriginalFile, &ds, logg)
 
 	ih := internalhttp.ImageHandler{
 		PreviewServise: ps,
@@ -36,9 +43,6 @@ func main() {
 	}
 
 	router := internalhttp.NewRouter(&ih)
-
-	addr := ":" + cfg.Port
-	log.Printf("starting http server at %s\n", addr)
 
 	err = http.ListenAndServe(addr, router)
 	if err != nil {

@@ -6,15 +6,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestDownload(t *testing.T) {
 	imageAddr := "https://raw.githubusercontent.com/OtusGolang/final_project/refs/heads/master/examples/image-previewer/gopher_256x126.jpg"
 	path := "/tmp/images2/"
-	ds := DownloadService{}
-	ps := New(5, "", path, &ds)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
 
-	err := os.MkdirAll(path, 0733)
+	ds := DownloadService{Logg: logg}
+	ps := New(5, "", path, &ds, logg)
+
+	err = os.MkdirAll(path, 0733)
 	require.NoError(t, err)
 
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))

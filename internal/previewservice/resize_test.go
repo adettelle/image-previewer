@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestCrop(t *testing.T) {
@@ -16,13 +17,16 @@ func TestCrop(t *testing.T) {
 	outWidth := 400
 	outHeight := 200
 
-	ds := DownloadService{}
-	ps := New(5, pathResized, pathToOriginal, &ds)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResized, pathToOriginal, &ds, logg)
 
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
 
-	err := os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginal, 0733)
@@ -33,7 +37,7 @@ func TestCrop(t *testing.T) {
 	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr)
 	require.NoError(t, err)
 
-	err = Crop(pathToOriginalFile, pathResized+resizedImageName, outWidth, outHeight)
+	err = ps.crop(pathToOriginalFile, pathResized+resizedImageName, outWidth, outHeight)
 	require.NoError(t, err)
 
 	actualW, actualH, err := actualSize(pathResized + resizedImageName)

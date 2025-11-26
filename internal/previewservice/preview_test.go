@@ -7,20 +7,26 @@ import (
 
 	"github.com/adettelle/image-previewer/pkg/lru"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
+
+const resize = "scale"
 
 // приходит ошибочный URL на картинку
 // желаемый размер уменьшенного изображения: 300_200
-// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/NO_Minla_strigula_4415x2943.jpg
+// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/NO_Rainbow_lorikeet_2702x3496.jpg
 // в кэш ничего не записывается
-func TestGetNonexistentImageFromCache(t *testing.T) {
+func TestGetNonexistentImageFromCache(t *testing.T) { // TODO 1
 	pathResized := "/tmp/images1/"
 	pathToOriginalFile := "/tmp/imagesOriginal1/"
 
-	ds := DownloadService{}
-	ps := New(5, pathResized, pathToOriginalFile, &ds)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
 
-	err := os.MkdirAll(pathResized, 0733)
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
+
+	err = os.MkdirAll(pathResized, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginalFile, 0733)
@@ -28,7 +34,7 @@ func TestGetNonexistentImageFromCache(t *testing.T) {
 
 	imageWantWidth := 300
 	imageWantHeight := 200
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/NO_Minla_strigula_4415x2943.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/NO_Rainbow_lorikeet_2702x3496.jpg"
 
 	_, err = ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
 	require.Error(t, err)
@@ -39,23 +45,24 @@ func TestGetNonexistentImageFromCache(t *testing.T) {
 	require.NoError(t, err)
 }
 
-const resize = "scale"
-
 // Positive case
-// приходит картинка 4415x2943
+// приходит картинка 2702x3496
 // желаемый размер уменьшенного изображения: 300_200
-// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/Minla_strigula_4415x2943.jpg
+// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/Rainbow_lorikeet_2702x3496.jpg
 // в кэш записывается имя картинки name(based64)_300_200,
 // уменьшенная картинка сохраняется в "/tmp/images1/"
 // при этом размер картики не 300х200, но один из размеров 300 или 200
-func TestSaveNewIncomingImageToCacheAndGetIt(t *testing.T) {
+func TestSaveNewIncomingImageToCacheAndGetIt(t *testing.T) { // TODO 1
 	pathResized := "/tmp/images1/"
 	pathToOriginalFile := "/tmp/imagesOriginal1/"
 
-	ds := DownloadService{}
-	ps := New(5, pathResized, pathToOriginalFile, &ds)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
 
-	err := os.MkdirAll(pathResized, 0733)
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
+
+	err = os.MkdirAll(pathResized, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginalFile, 0733)
@@ -63,7 +70,7 @@ func TestSaveNewIncomingImageToCacheAndGetIt(t *testing.T) {
 
 	imageWantWidth := 444
 	imageWantHeight := 222
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/Minla_strigula_4415x2943.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/Rainbow_lorikeet_2702x3496.jpg"
 
 	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
 	require.NoError(t, err)
@@ -105,7 +112,7 @@ func checkAtLeastOneSize(pathToFile string, width, height int) (bool, error) {
 // Positive case
 // приходит картинка 2000x1000
 // // желаемый размер уменьшенного изображения: 500_300
-// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/Minla_strigula_4415x2943.jpg
+// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg
 // в кэше такая картинка с именем name(based64)_500_300 есть,
 // картинка выдается из кэша, сама при этом еще раз не сохраняется в "/tmp/images1/"
 // при этом размер картики не 500х300, но один из размеров 500 или 300
@@ -113,10 +120,13 @@ func TestGetIncomingImageFromCacheNoSaving(t *testing.T) {
 	pathResizedFile := "/tmp/images1/"
 	pathToOriginalFile := "/tmp/imagesOriginal1/"
 
-	ds := DownloadService{}
-	ps := New(5, pathResizedFile, pathToOriginalFile, &ds)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
 
-	err := os.MkdirAll(pathResizedFile, 0733)
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResizedFile, pathToOriginalFile, &ds, logg)
+
+	err = os.MkdirAll(pathResizedFile, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginalFile, 0733)
@@ -124,7 +134,7 @@ func TestGetIncomingImageFromCacheNoSaving(t *testing.T) {
 
 	imageWantWidth := 500
 	imageWantHeight := 300
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/Minla_strigula_4415x2943.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
 
 	// check that the file is not downloaded for the second time:
 	resizedImage1, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
@@ -157,7 +167,7 @@ func TestGetIncomingImageFromCacheNoSaving(t *testing.T) {
 
 // приходит картинка 256x126
 // желаемый размер уменьшенного изображения: 400_200
-// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/gopher_256x126.jpg
+// https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_256x126.jpg
 // в кэш записывается имя картинки name(based64)_400_100,
 // "уменьшенная" картинка сохраняется в "/tmp/images1/"
 // при этом размер "уменьшенной" картинки в "/tmp/images1/" не 400х200, а исходный 256x126
@@ -165,10 +175,13 @@ func TestSaveNewIncomingImageToCacheWithoutResize(t *testing.T) {
 	pathResized := "/tmp/images1/"
 	pathToOriginal := "/tmp/imagesOriginal1/"
 
-	ds := DownloadService{}
-	ps := New(5, pathResized, pathToOriginal, &ds)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
 
-	err := os.MkdirAll(pathResized, 0733)
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResized, pathToOriginal, &ds, logg)
+
+	err = os.MkdirAll(pathResized, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginal, 0733)
@@ -176,7 +189,7 @@ func TestSaveNewIncomingImageToCacheWithoutResize(t *testing.T) {
 
 	imageWantWidth := 400
 	imageWantHeight := 200
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/gopher_256x126.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_256x126.jpg"
 
 	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
 	require.NoError(t, err)
@@ -198,9 +211,12 @@ func TestCropBigImageToSmall(t *testing.T) {
 	pathResized := "/tmp/images1/"
 	pathToOriginal := "/tmp/imagesOriginal1/"
 
-	ds := DownloadService{}
-	ps := New(5, pathResized, pathToOriginal, &ds)
-	err := os.MkdirAll(pathResized, 0733)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResized, pathToOriginal, &ds, logg)
+	err = os.MkdirAll(pathResized, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginal, 0733)
@@ -208,7 +224,7 @@ func TestCropBigImageToSmall(t *testing.T) {
 
 	imageWantWidth := 400
 	imageWantHeight := 100
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/Minla_strigula_4415x2943.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
 
 	scaleOrCrop := "crop"
 
@@ -225,9 +241,12 @@ func TestCropSmallImageToBig(t *testing.T) {
 	pathResized := "/tmp/images1/"
 	pathToOriginalFile := "/tmp/imagesOriginal1/"
 
-	ds := DownloadService{}
-	ps := New(5, pathResized, pathToOriginalFile, &ds)
-	err := os.MkdirAll(pathResized, 0733)
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	ds := DownloadService{Logg: logg}
+	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
+	err = os.MkdirAll(pathResized, 0733)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(pathToOriginalFile, 0733)
@@ -235,7 +254,7 @@ func TestCropSmallImageToBig(t *testing.T) {
 
 	imageWantWidth := 400
 	imageWantHeight := 200
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/image-examples/gopher_256x126.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_256x126.jpg"
 
 	scaleOrCrop := "crop"
 

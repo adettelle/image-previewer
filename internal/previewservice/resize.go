@@ -3,9 +3,9 @@ package previewservice
 import (
 	"image"
 	"image/jpeg"
-	"log"
 	"os"
 
+	"go.uber.org/zap"
 	"golang.org/x/image/draw"
 )
 
@@ -18,13 +18,11 @@ import (
 // (outWidth or outHeight) will be retained.
 // If the size of incoming image is smaller than the desired,
 // incoming image will be returned as a response.
-func Scale(path string, resizedImagePath string, outWidth int, outHeight int) error {
-	log.Println("path to scale:", path)
-	log.Println("resizedImagePath:", resizedImagePath)
-
+func (ps *PreviewService) scale(path string, resizedImagePath string, outWidth int, outHeight int) error {
 	// Open file.
 	inputFile, err := os.Open(path)
 	if err != nil {
+		ps.Logg.Error("error in opening: ", zap.String("path", path), zap.Error(err))
 		return err
 	}
 
@@ -32,6 +30,7 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 
 	originalImage, err := jpeg.Decode(inputFile)
 	if err != nil {
+		ps.Logg.Error("error in decoding jpeg: ", zap.String("name", inputFile.Name()), zap.Error(err))
 		return err
 	}
 
@@ -49,12 +48,14 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 
 		scaledImageFile, err := os.Create(resizedImagePath)
 		if err != nil {
+			ps.Logg.Error("error in creating: ", zap.String("file", resizedImagePath), zap.Error(err))
 			return err
 		}
 		defer scaledImageFile.Close() //nolint
 
 		err = jpeg.Encode(scaledImageFile, dst, nil)
 		if err != nil {
+			ps.Logg.Error("error in encoding image: ", zap.String("name", scaledImageFile.Name()), zap.Error(err))
 			return err
 		}
 		// -----------------
@@ -78,12 +79,14 @@ func Scale(path string, resizedImagePath string, outWidth int, outHeight int) er
 
 	scaledImageFile, err := os.Create(resizedImagePath)
 	if err != nil {
+		ps.Logg.Error("error in creating: ", zap.String("file", resizedImagePath), zap.Error(err))
 		return err
 	}
 	defer scaledImageFile.Close() //nolint
 
 	err = jpeg.Encode(scaledImageFile, dst, nil)
 	if err != nil {
+		ps.Logg.Error("error in encoding image: ", zap.String("name", scaledImageFile.Name()), zap.Error(err))
 		return err
 	}
 
@@ -105,11 +108,11 @@ type SubImager interface {
 // The desired width and height of the cropped image is specified in pixels
 // (outWidth and outHeight).
 // The resulting size is cropped from the center of the incomming image.
-func Crop(path string, resizedImagePath string, outWidth int, outHeight int) error {
-	log.Println("path", path)
+func (ps *PreviewService) crop(path string, resizedImagePath string, outWidth int, outHeight int) error {
 	// Open file.
 	inputFile, err := os.Open(path)
 	if err != nil {
+		ps.Logg.Error("error in opening: ", zap.String("file", path), zap.Error(err))
 		return err
 	}
 
@@ -117,6 +120,7 @@ func Crop(path string, resizedImagePath string, outWidth int, outHeight int) err
 
 	originalImage, err := jpeg.Decode(inputFile)
 	if err != nil {
+		ps.Logg.Error("error in decoding jpeg: ", zap.String("name", inputFile.Name()), zap.Error(err))
 		return err
 	}
 
@@ -137,12 +141,14 @@ func Crop(path string, resizedImagePath string, outWidth int, outHeight int) err
 
 	croppedImageFile, err := os.Create(resizedImagePath)
 	if err != nil {
+		ps.Logg.Error("error in creating: ", zap.String("file", resizedImagePath), zap.Error(err))
 		return err
 	}
 	defer croppedImageFile.Close() //nolint
 
 	err = jpeg.Encode(croppedImageFile, croppedImage, nil)
 	if err != nil {
+		ps.Logg.Error("error in encoding image: ", zap.String("name", croppedImageFile.Name()), zap.Error(err))
 		return err
 	}
 
