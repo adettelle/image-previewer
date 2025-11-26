@@ -1,0 +1,9 @@
+services:
+
+  previewer:
+    build: 
+      context: .
+      dockerfile: ./build/Dockerfile_previewer
+    ports:
+      - 8081:8081
+    

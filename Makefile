@@ -19,3 +19,12 @@ run:
 
 build_previewer:
 	go build -v -o "$(BIN)/build_previewer" ./cmd/
+
+up-previewer:
+	docker compose up previewer -d --build
+
+down:
+	docker compose down
+
+integration-tests:
+	docker compose

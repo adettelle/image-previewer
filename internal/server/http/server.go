@@ -5,13 +5,20 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/adettelle/image-previewer/pkg/previewservice"
+	"github.com/adettelle/image-previewer/internal/previewservice"
 	"github.com/go-chi/chi/v5"
 )
 
 type ImageHandler struct {
-	PreviewServise *previewservice.PreviewService
+	PreviewServise Previewer // *previewservice.PreviewService
 	CacheCapacity  int
+	ScaleOrCrop    string
+}
+
+type Previewer interface {
+	GeneratePreview(outWidth int, outHeight int,
+		imageAddr string, scaleOrCrop string) (previewservice.ResizedImage, error)
+	// DownloadFile(filePath string, url string) error
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +42,8 @@ func (ih *ImageHandler) preview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resizedImage, err := ih.PreviewServise.GeneratePreview(outW, outH, imageAddr)
+	// scaleOrCrop :=
+	resizedImage, err := ih.PreviewServise.GeneratePreview(outW, outH, imageAddr, ih.ScaleOrCrop)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

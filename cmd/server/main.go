@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/adettelle/image-previewer/config"
+	"github.com/adettelle/image-previewer/internal/previewservice"
 	internalhttp "github.com/adettelle/image-previewer/internal/server/http"
-	"github.com/adettelle/image-previewer/pkg/previewservice"
 )
 
 const (
@@ -26,11 +26,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ps := previewservice.New(cacheCapacity, pathToSaveIncommingImages, pathToOriginalFile)
+	ds := previewservice.DownloadService{}
+	ps := previewservice.New(cacheCapacity, pathToSaveIncommingImages, pathToOriginalFile, &ds)
 
 	ih := internalhttp.ImageHandler{
 		PreviewServise: ps,
 		CacheCapacity:  cacheCapacity,
+		ScaleOrCrop:    cfg.Resize,
 	}
 
 	router := internalhttp.NewRouter(&ih)
