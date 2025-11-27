@@ -31,7 +31,7 @@ func GetLogger(level string) *zap.Logger {
 		zap.NewAtomicLevelAt(logLevel),
 	))
 
-	defer logg.Sync()
+	defer logg.Sync() //nolint
 
 	logg.Info("start logging")
 
