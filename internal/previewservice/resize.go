@@ -48,7 +48,9 @@ func (ps *PreviewService) scale(path string, resizedImagePath string, outWidth i
 
 		scaledImageFile, err := os.Create(resizedImagePath)
 		if err != nil {
-			ps.Logg.Error("error in creating: ", zap.String("file", resizedImagePath), zap.Error(err))
+			ps.Logg.Error("error in creating: ",
+				zap.String("file", resizedImagePath),
+				zap.Error(err))
 			return err
 		}
 		defer scaledImageFile.Close() //nolint
@@ -141,7 +143,7 @@ func (ps *PreviewService) crop(path string, resizedImagePath string, outWidth in
 
 	croppedImageFile, err := os.Create(resizedImagePath)
 	if err != nil {
-		ps.Logg.Error("error in creating: ", zap.String("file", resizedImagePath), zap.Error(err))
+		ps.Logg.Error("error in creating 4444: ", zap.String("file", resizedImagePath), zap.Error(err))
 		return err
 	}
 	defer croppedImageFile.Close() //nolint

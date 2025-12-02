@@ -10,19 +10,23 @@ import (
 )
 
 const (
-	defaultHost          = "localhost"
-	defaultPort          = "8080"
-	defaultCacheCapacity = "5"
-	defaultResize        = "scale"
+	defaultHost                      = "localhost"
+	defaultPort                      = "8080"
+	defaultCacheCapacity             = "5"
+	defaultResize                    = "scale"
+	defaultPathToSaveIncommingImages = "./images/"
+	defaultPathToOriginalFile        = "/tmp/"
 )
 
 type Config struct {
-	Logger        *LoggerConf
-	Context       *context.Context
-	Host          string
-	Port          string
-	CacheCapacity string
-	Resize        string
+	Logger                    *LoggerConf
+	Context                   *context.Context
+	Host                      string
+	Port                      string
+	CacheCapacity             string
+	Resize                    string
+	PathToSaveIncommingImages string
+	PathToOriginalFile        string
 }
 
 type LoggerConf struct {
@@ -36,11 +40,13 @@ func New(ctx *context.Context) *Config {
 		Logger: &LoggerConf{
 			Level: "INFO",
 		},
-		Context:       ctx,
-		Host:          getEnvOrDefault("HOST", defaultHost),
-		Port:          getEnvOrDefault("PORT", defaultPort),
-		CacheCapacity: getEnvOrDefault("CAP", defaultCacheCapacity),
-		Resize:        getEnvOrDefault("RESIZE", defaultResize),
+		Context:                   ctx,
+		Host:                      getEnvOrDefault("HOST", defaultHost),
+		Port:                      getEnvOrDefault("PORT", defaultPort),
+		CacheCapacity:             getEnvOrDefault("CAP", defaultCacheCapacity),
+		Resize:                    getEnvOrDefault("RESIZE", defaultResize),
+		PathToSaveIncommingImages: defaultPathToSaveIncommingImages,
+		PathToOriginalFile:        defaultPathToOriginalFile,
 	}
 
 	ensureAddrIsCorrect(cfg.Host, cfg.Port)

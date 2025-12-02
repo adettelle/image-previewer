@@ -6,9 +6,29 @@ services:
       dockerfile: ./build/Dockerfile
     ports:
       - "8080:8080"
+    depends_on:
+      - nginx
     
   nginx:
     image: nginx
+    ports:
+      - "8090:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./test/images:/var/www/
 
-volumes:
+  integration-tests:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile_tests
+    depends_on:
+      previewer:
+        condition: service_started
+      nginx:
+        condition: service_started
+    volumes:
+      - app_logs:/var/log/
+
+volumes: 
+  app_logs:
   nginx:

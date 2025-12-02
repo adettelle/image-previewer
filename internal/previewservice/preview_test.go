@@ -26,10 +26,10 @@ func TestGetNonexistentImageFromCache(t *testing.T) { // TODO 1
 	ds := DownloadService{Logg: logg}
 	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
 
-	err = os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginalFile, 0733)
+	err = os.MkdirAll(pathToOriginalFile, 0700)
 	require.NoError(t, err)
 
 	imageWantWidth := 300
@@ -62,10 +62,10 @@ func TestSaveNewIncomingImageToCacheAndGetIt(t *testing.T) { // TODO 1
 	ds := DownloadService{Logg: logg}
 	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
 
-	err = os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginalFile, 0733)
+	err = os.MkdirAll(pathToOriginalFile, 0700)
 	require.NoError(t, err)
 
 	imageWantWidth := 444
@@ -126,10 +126,10 @@ func TestGetIncomingImageFromCacheNoSaving(t *testing.T) {
 	ds := DownloadService{Logg: logg}
 	ps := New(5, pathResizedFile, pathToOriginalFile, &ds, logg)
 
-	err = os.MkdirAll(pathResizedFile, 0733)
+	err = os.MkdirAll(pathResizedFile, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginalFile, 0733)
+	err = os.MkdirAll(pathToOriginalFile, 0700)
 	require.NoError(t, err)
 
 	imageWantWidth := 500
@@ -181,10 +181,10 @@ func TestSaveNewIncomingImageToCacheWithoutResize(t *testing.T) {
 	ds := DownloadService{Logg: logg}
 	ps := New(5, pathResized, pathToOriginal, &ds, logg)
 
-	err = os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginal, 0733)
+	err = os.MkdirAll(pathToOriginal, 0700)
 	require.NoError(t, err)
 
 	imageWantWidth := 400
@@ -216,10 +216,10 @@ func TestCropBigImageToSmall(t *testing.T) {
 
 	ds := DownloadService{Logg: logg}
 	ps := New(5, pathResized, pathToOriginal, &ds, logg)
-	err = os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginal, 0733)
+	err = os.MkdirAll(pathToOriginal, 0700)
 	require.NoError(t, err)
 
 	imageWantWidth := 400
@@ -246,10 +246,10 @@ func TestCropSmallImageToBig(t *testing.T) {
 
 	ds := DownloadService{Logg: logg}
 	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
-	err = os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginalFile, 0733)
+	err = os.MkdirAll(pathToOriginalFile, 0700)
 	require.NoError(t, err)
 
 	imageWantWidth := 400

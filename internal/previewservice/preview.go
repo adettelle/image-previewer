@@ -3,7 +3,6 @@ package previewservice
 import (
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -77,7 +76,7 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 		return ResizedImage{}, err
 	}
 
-	ps.Logg.Info("Downloaded: " + imageAddr)
+	ps.Logg.Info("Downloaded: ", zap.String("url", imageAddr), zap.String("in", pathToOriginalFile))
 
 	switch scaleOrCrop {
 	case "scale":
@@ -112,8 +111,7 @@ func (ds *DownloadService) DownloadFile(filePath string, url string) error {
 
 	contentType := resp.Header.Get("Content-Type")
 	if strings.ToLower(contentType) != "image/jpeg" {
-		// ds.Logg.Error("unexpected Content-Type: ", zap.String("contentType", contentType))
-		return fmt.Errorf("unexpected Content-Type %s", contentType) // TODO
+		ds.Logg.Error("unexpected Content-Type: ", zap.String("contentType", contentType))
 	}
 
 	// Create the file

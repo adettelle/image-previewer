@@ -10,7 +10,7 @@ import (
 )
 
 func TestDownload(t *testing.T) {
-	imageAddr := "https://raw.githubusercontent.com/OtusGolang/final_project/refs/heads/master/examples/image-previewer/gopher_256x126.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_256x126.jpg"
 	path := "/tmp/images2/"
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
@@ -18,7 +18,7 @@ func TestDownload(t *testing.T) {
 	ds := DownloadService{Logg: logg}
 	ps := New(5, "", path, &ds, logg)
 
-	err = os.MkdirAll(path, 0733)
+	err = os.MkdirAll(path, 0700)
 	require.NoError(t, err)
 
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))

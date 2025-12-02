@@ -2,7 +2,7 @@ BIN := "./bin"
 
 .PHONY:test
 test:
-	go test -count 1 ./... -v
+	go test -count 1 -v $(shell go list ./... | grep -v /integration_tests)
 
 test-race:
 	go test -race -count 100 ./... -v
@@ -28,4 +28,4 @@ down:
 	docker compose down
 
 integration-tests:
-	docker compose
+	docker compose up integration-tests

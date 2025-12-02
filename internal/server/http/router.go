@@ -7,7 +7,7 @@ import (
 func NewRouter(h *ImageHandler) chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", hello)
+	r.Get("/", mainPage)
 	r.Get("/fill/{width}/{height}/*", h.preview)
 
 	return r

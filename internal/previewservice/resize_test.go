@@ -13,7 +13,7 @@ import (
 func TestCrop(t *testing.T) {
 	pathResized := "/tmp/images1/"
 	pathToOriginal := "/tmp/imagesOriginals1/"
-	imageAddr := "https://raw.githubusercontent.com/OtusGolang/final_project/refs/heads/master/examples/image-previewer/gopher_2000x1000.jpg"
+	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
 	outWidth := 400
 	outHeight := 200
 
@@ -26,10 +26,10 @@ func TestCrop(t *testing.T) {
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
 
-	err = os.MkdirAll(pathResized, 0733)
+	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
-	err = os.MkdirAll(pathToOriginal, 0733)
+	err = os.MkdirAll(pathToOriginal, 0700)
 	require.NoError(t, err)
 
 	pathToOriginalFile := pathToOriginal + originalImageName
