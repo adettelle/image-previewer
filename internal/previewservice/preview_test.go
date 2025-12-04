@@ -2,6 +2,7 @@ package previewservice
 
 import (
 	"image"
+	"net/http"
 	"os"
 	"testing"
 
@@ -23,8 +24,8 @@ func TestGetNonexistentImageFromCache(t *testing.T) { // TODO 1
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginalFile, ds, logg)
 
 	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
@@ -36,7 +37,7 @@ func TestGetNonexistentImageFromCache(t *testing.T) { // TODO 1
 	imageWantHeight := 200
 	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/NO_Rainbow_lorikeet_2702x3496.jpg"
 
-	_, err = ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
+	_, err = ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize, http.Header{})
 	require.Error(t, err)
 
 	err = os.RemoveAll(pathResized)
@@ -59,8 +60,8 @@ func TestSaveNewIncomingImageToCacheAndGetIt(t *testing.T) { // TODO 1
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginalFile, ds, logg)
 
 	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
@@ -72,7 +73,7 @@ func TestSaveNewIncomingImageToCacheAndGetIt(t *testing.T) { // TODO 1
 	imageWantHeight := 222
 	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/Rainbow_lorikeet_2702x3496.jpg"
 
-	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
+	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize, http.Header{})
 	require.NoError(t, err)
 
 	_, ok := ps.Cache.Get(lru.Key(resizedImage.Name))
@@ -123,8 +124,8 @@ func TestGetIncomingImageFromCacheNoSaving(t *testing.T) {
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResizedFile, pathToOriginalFile, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResizedFile, pathToOriginalFile, ds, logg)
 
 	err = os.MkdirAll(pathResizedFile, 0700)
 	require.NoError(t, err)
@@ -137,13 +138,13 @@ func TestGetIncomingImageFromCacheNoSaving(t *testing.T) {
 	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
 
 	// check that the file is not downloaded for the second time:
-	resizedImage1, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
+	resizedImage1, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize, http.Header{})
 	require.NoError(t, err)
 
 	fileInfo1, err := os.Stat(resizedImage1.Path + resizedImage1.Name)
 	require.NoError(t, err)
 
-	resizedImage2, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
+	resizedImage2, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize, http.Header{})
 	require.NoError(t, err)
 
 	fileInfo2, err := os.Stat(resizedImage2.Path + resizedImage2.Name)
@@ -178,8 +179,8 @@ func TestSaveNewIncomingImageToCacheWithoutResize(t *testing.T) {
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResized, pathToOriginal, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginal, ds, logg)
 
 	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
@@ -191,7 +192,7 @@ func TestSaveNewIncomingImageToCacheWithoutResize(t *testing.T) {
 	imageWantHeight := 200
 	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_256x126.jpg"
 
-	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize)
+	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, resize, http.Header{})
 	require.NoError(t, err)
 
 	_, ok := ps.Cache.Get(lru.Key(resizedImage.Name))
@@ -214,8 +215,8 @@ func TestCropBigImageToSmall(t *testing.T) {
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResized, pathToOriginal, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginal, ds, logg)
 	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
@@ -228,7 +229,7 @@ func TestCropBigImageToSmall(t *testing.T) {
 
 	scaleOrCrop := "crop"
 
-	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, scaleOrCrop)
+	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, scaleOrCrop, http.Header{})
 	require.NoError(t, err)
 
 	actualW, actualH, err := actualSize(pathResized + resizedImage.Name)
@@ -244,8 +245,8 @@ func TestCropSmallImageToBig(t *testing.T) {
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResized, pathToOriginalFile, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginalFile, ds, logg)
 	err = os.MkdirAll(pathResized, 0700)
 	require.NoError(t, err)
 
@@ -258,7 +259,7 @@ func TestCropSmallImageToBig(t *testing.T) {
 
 	scaleOrCrop := "crop"
 
-	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, scaleOrCrop)
+	resizedImage, err := ps.GeneratePreview(imageWantWidth, imageWantHeight, imageAddr, scaleOrCrop, http.Header{})
 	require.NoError(t, err)
 
 	actualW, actualH, err := actualSize(pathResized + resizedImage.Name)
@@ -281,18 +282,3 @@ func actualSize(pathToFile string) (width int, height int, err error) {
 
 	return im.Width, im.Height, nil
 }
-
-// тест когда картинка 200х100 а надо crop на 400х300
-
-// приходит картинка очень большого размера ??????
-// желаемый размер уменьшенного изображения: 300_200
-//
-// уменьшенная картинка не сохраняется в "/tmp/images1/"
-// возвращается ошибка и что еще?
-func TestTooBigIncomingImage(t *testing.T) {
-
-}
-
-// надо ли проверять приход png / txt / video ???
-
-// -------------------------------

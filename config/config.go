@@ -15,7 +15,7 @@ const (
 	defaultCacheCapacity             = "5"
 	defaultResize                    = "scale"
 	defaultPathToSaveIncommingImages = "./images/"
-	defaultPathToOriginalFile        = "/tmp/"
+	defaultPathToOriginalFile        = "/tmp/images/"
 )
 
 type Config struct {

@@ -2,6 +2,7 @@ package previewservice
 
 import (
 	"encoding/base64"
+	"net/http"
 	"os"
 	"testing"
 
@@ -15,17 +16,16 @@ func TestDownload(t *testing.T) {
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, "", path, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, "", path, ds, logg)
 
 	err = os.MkdirAll(path, 0700)
 	require.NoError(t, err)
 
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	pathToOriginalFile := path + originalImageName
-	// ps := New(5, "", pathToOriginalFile)
 
-	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr)
+	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr, http.Header{})
 	require.NoError(t, err)
 
 	file, err := os.Open(pathToOriginalFile)

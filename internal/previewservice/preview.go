@@ -39,17 +39,25 @@ type ResizedImage struct {
 }
 
 type Downloader interface {
-	DownloadFile(filePath string, url string) error
+	DownloadFile(filePath string, url string, headers http.Header) error
 }
 
 type DownloadService struct {
-	Logg *zap.Logger
+	Logg   *zap.Logger
+	Client http.Client
+}
+
+func NewDownloadService(logg *zap.Logger) *DownloadService {
+	return &DownloadService{
+		Logg:   logg,
+		Client: http.Client{},
+	}
 }
 
 // returns pathToResizedImage (path + name)
 // imageAddr is like "https://" + chi.URLParam(r, "*")
 func (ps *PreviewService) GeneratePreview(outWidth int,
-	outHeight int, imageAddr string, scaleOrCrop string) (ResizedImage, error) {
+	outHeight int, imageAddr string, scaleOrCrop string, headers http.Header) (ResizedImage, error) {
 
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
@@ -75,7 +83,7 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 		ps.Logg.Info("file does not exists, should be downloaded:",
 			zap.String("pathToOriginalFile", pathToOriginalFile))
 
-		err := ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr)
+		err := ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr, headers)
 		if err != nil {
 			ps.Logg.Error("error downloading file: ", zap.String("url", imageAddr), zap.Error(err))
 			return ResizedImage{}, err
@@ -113,9 +121,16 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 
 // DownloadFile will download file from a given url to a filePath.
 // It will write as it downloads (useful for large files).
-func (ds *DownloadService) DownloadFile(filePath string, url string) error {
+func (ds *DownloadService) DownloadFile(filePath string, url string, headers http.Header) error {
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		ds.Logg.Error("error in creating request: ", zap.String("url", url), zap.Error(err))
+		return err
+	}
+	req.Header = headers
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := ds.Client.Do(req) //http.Get(url)
 	if err != nil {
 		ds.Logg.Error("error in getting url: ", zap.String("url", url), zap.Error(err))
 		return err

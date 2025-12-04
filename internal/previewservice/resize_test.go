@@ -2,6 +2,7 @@ package previewservice
 
 import (
 	"encoding/base64"
+	"net/http"
 	"os"
 	"strconv"
 	"testing"
@@ -20,8 +21,8 @@ func TestCrop(t *testing.T) {
 	logg, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ds := DownloadService{Logg: logg}
-	ps := New(5, pathResized, pathToOriginal, &ds, logg)
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginal, ds, logg)
 
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
@@ -34,7 +35,7 @@ func TestCrop(t *testing.T) {
 
 	pathToOriginalFile := pathToOriginal + originalImageName
 
-	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr)
+	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr, http.Header{})
 	require.NoError(t, err)
 
 	err = ps.crop(pathToOriginalFile, pathResized+resizedImageName, outWidth, outHeight)

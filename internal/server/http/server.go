@@ -27,7 +27,8 @@ type ImageHandler struct {
 
 type Previewer interface {
 	GeneratePreview(outWidth int, outHeight int,
-		imageAddr string, scaleOrCrop string) (previewservice.ResizedImage, error)
+		imageAddr string, scaleOrCrop string,
+		headers http.Header) (previewservice.ResizedImage, error)
 	// DownloadFile(filePath string, url string) error
 }
 
@@ -99,16 +100,18 @@ func (ih *ImageHandler) preview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resizedImage, err := ih.PreviewServise.GeneratePreview(outW, outH, imageAddr, ih.ScaleOrCrop)
+	// -------------
+	httpHeaders := http.Header{}
+	for key, values := range r.Header {
+		for _, value := range values {
+			httpHeaders.Add(key, value)
+		}
+	}
+
+	resizedImage, err := ih.PreviewServise.GeneratePreview(outW, outH, imageAddr, ih.ScaleOrCrop, httpHeaders)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	}
-
-	for key, values := range r.Header {
-		for _, value := range values {
-			w.Header().Set(key, value)
-		}
 	}
 
 	w.Header().Set("Content-Type", "image/jpeg")              // TODO
