@@ -16,7 +16,7 @@ import (
 type PreviewService struct {
 	Cache               lru.LruCache
 	PathToResizedImages string // const "./images/"
-	PathToOriginalFile  string // const "/tmp/"
+	PathToOriginalFile  string // const "/tmp/images/"
 	Downloader          Downloader
 	Logg                *zap.Logger
 }
@@ -67,16 +67,29 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 		return resizedImage, nil
 	}
 
-	// example of pathToOriginalFile: "/tmp/" + "xxx_300_200"
+	// example of pathToOriginalFile: "/tmp/images/" + "xxx_300_200"
 	pathToOriginalFile := ps.PathToOriginalFile + originalImageName
 
-	err := ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr)
-	if err != nil {
-		ps.Logg.Error("error downloading file: ", zap.String("url", imageAddr), zap.Error(err))
-		return ResizedImage{}, err
-	}
+	fileInfo, err := os.Stat(pathToOriginalFile)
+	if os.IsNotExist(err) {
+		ps.Logg.Info("file does not exists, should be downloaded:",
+			zap.String("pathToOriginalFile", pathToOriginalFile))
 
-	ps.Logg.Info("Downloaded: ", zap.String("url", imageAddr), zap.String("in", pathToOriginalFile))
+		err := ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr)
+		if err != nil {
+			ps.Logg.Error("error downloading file: ", zap.String("url", imageAddr), zap.Error(err))
+			return ResizedImage{}, err
+		}
+
+		ps.Logg.Info("Downloaded: ", zap.String("url", imageAddr), zap.String("in", pathToOriginalFile))
+	} else if err != nil {
+		ps.Logg.Error("error in getting info: ", zap.String("file", pathToOriginalFile), zap.Error(err))
+		return ResizedImage{}, err
+	} else {
+		ps.Logg.Info("file exists, should not be downloaded:",
+			zap.String("pathToOriginalFile", pathToOriginalFile),
+			zap.String("fileName", fileInfo.Name()))
+	}
 
 	switch scaleOrCrop {
 	case "scale":
