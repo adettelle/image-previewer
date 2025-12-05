@@ -1,32 +1,10 @@
 version: "2"
 
+run:
+  timeout: 5m
+
 issues:
   max-same-issues: 50
-
-formatters:
-  enable:
-    - goimports # checks if the code and import statements are formatted according to the 'goimports' command
-    - golines # checks if code is formatted, and fixes long lines
-
-    ## you may want to enable
-    #- gci # checks if code and import statements are formatted, with additional rules
-    #- gofmt # checks if the code is formatted according to 'gofmt' command
-    #- gofumpt # enforces a stricter format than 'gofmt', while being backwards compatible
-    #- swaggo # formats swaggo comments
-
-  # All settings can be found here https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
-  settings:
-    goimports:
-      # A list of prefixes, which, if set, checks import paths
-      # with the given prefixes are grouped after 3rd-party packages.
-      # Default: []
-      local-prefixes:
-        - github.com/my/project
-
-    golines:
-      # Target maximum line length.
-      # Default: 100
-      max-len: 120
 
 linters:
   disable-all: true
@@ -43,6 +21,7 @@ linters:
     - gocritic
     - gocyclo
     - godot
+    # - goimports
     - gomoddirectives
     - goprintffuncname
     - gosec
@@ -54,7 +33,6 @@ linters:
     - noctx
     - nolintlint
     - predeclared
-    # - revive  
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
@@ -66,18 +44,32 @@ linters:
     - whitespace
 
 linters-settings:
+  goimports:
+    local-prefixes: github.com/my/project
+  
+  golines:
+    max-len: 120
+  
+  funlen:
+    lines: 100
+    statements: 50
+  
+  gocognit:
+    min-complexity: 15
+  
+  gocyclo:
+    min-complexity: 15
+  
   depguard:
     rules:
-      Main:
+      main:
         files:
           - "!**/*_test.go"
         allow:
-          - .
-      Tests:
+          - $gostd
+      test:
         files:
           - "**/*_test.go"
         allow:
-          - .
-          - github.com/stretchr/testify/assert
-          - github.com/stretchr/testify/require
-          - github.com/stretchr/testify/require
+          - $gostd
+          - github.com/stretchr/testify
