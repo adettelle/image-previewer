@@ -7,7 +7,7 @@ issues:
   max-same-issues: 50
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - asciicheck
     - bodyclose
@@ -31,7 +31,7 @@ linters:
     - nestif
     - nilerr
     - noctx
-    - nolintlint
+    # - nolintlint
     - predeclared
     - rowserrcheck
     - sqlclosecheck
@@ -43,33 +43,33 @@ linters:
     - wastedassign
     - whitespace
 
-linters-settings:
-  goimports:
-    local-prefixes: github.com/my/project
-  
-  golines:
-    max-len: 120
-  
-  funlen:
-    lines: 100
-    statements: 50
-  
-  gocognit:
-    min-complexity: 15
-  
-  gocyclo:
-    min-complexity: 15
-  
-  depguard:
-    rules:
-      main:
-        files:
-          - "!**/*_test.go"
-        allow:
-          - $gostd
-      test:
-        files:
-          - "**/*_test.go"
-        allow:
-          - $gostd
-          - github.com/stretchr/testify
+  settings:
+    goimports:
+      local-prefixes: github.com/my/project
+    
+    golines:
+      max-len: 120
+    
+    funlen:
+      lines: 100
+      statements: 50
+    
+    gocognit:
+      min-complexity: 15
+    
+    gocyclo:
+      min-complexity: 15
+    
+    depguard:
+      rules:
+        main:
+          files:
+            - "!**/*_test.go"
+          allow:
+            - $gostd
+        test:
+          files:
+            - "**/*_test.go"
+          allow:
+            - $gostd
+            - github.com/stretchr/testify
