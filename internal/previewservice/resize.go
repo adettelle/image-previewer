@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/jpeg"
 	"os"
+	"path/filepath"
 
 	"go.uber.org/zap"
 	"golang.org/x/image/draw"
@@ -18,16 +19,15 @@ import (
 // (outWidth or outHeight) will be retained.
 // If the size of incoming image is smaller than the desired,
 // incoming image will be returned as a response.
-func (ps *PreviewService) scale(path string, resizedImagePath string, outWidth int, outHeight int) error {
-	// Open file.
-	inputFile, err := os.Open(path)
+func (ps *PreviewService) scale(path string, resizedImagePath string,
+	outWidth int, outHeight int) error {
+	inputFile, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		ps.Logg.Error("error in opening: ", zap.String("path", path), zap.Error(err))
 		return err
 	}
 
 	// -------------------------------------------------------------------------
-
 	originalImage, err := jpeg.Decode(inputFile)
 	if err != nil {
 		ps.Logg.Error("error in decoding jpeg: ", zap.String("name", inputFile.Name()), zap.Error(err))
@@ -46,17 +46,15 @@ func (ps *PreviewService) scale(path string, resizedImagePath string, outWidth i
 
 		draw.NearestNeighbor.Scale(dst, dst.Rect, originalImage, originalImage.Bounds(), draw.Over, nil)
 
-		scaledImageFile, err := os.Create(resizedImagePath)
+		scaledImageFile, err := os.Create(filepath.Clean(resizedImagePath))
 		if err != nil {
 			ps.Logg.Error("error in creating: ",
-				zap.String("file", resizedImagePath),
-				zap.Error(err))
+				zap.String("file", resizedImagePath), zap.Error(err))
 			return err
 		}
 		defer scaledImageFile.Close() //nolint
 
-		err = jpeg.Encode(scaledImageFile, dst, nil)
-		if err != nil {
+		if err := jpeg.Encode(scaledImageFile, dst, nil); err != nil {
 			ps.Logg.Error("error in encoding image: ", zap.String("name", scaledImageFile.Name()), zap.Error(err))
 			return err
 		}
@@ -72,22 +70,20 @@ func (ps *PreviewService) scale(path string, resizedImagePath string, outWidth i
 	} else if checkWidth <= outWidth {
 		outWidth = checkWidth
 	}
-
 	// ---------------------------------------------------------
 	// saving to pathToSaveIncommingImages "./images/"
 	dst := image.NewRGBA(image.Rect(0, 0, outWidth, outHeight))
 
 	draw.NearestNeighbor.Scale(dst, dst.Rect, originalImage, originalImage.Bounds(), draw.Over, nil)
 
-	scaledImageFile, err := os.Create(resizedImagePath)
+	scaledImageFile, err := os.Create(filepath.Clean(resizedImagePath))
 	if err != nil {
 		ps.Logg.Error("error in creating: ", zap.String("file", resizedImagePath), zap.Error(err))
 		return err
 	}
 	defer scaledImageFile.Close() //nolint
 
-	err = jpeg.Encode(scaledImageFile, dst, nil)
-	if err != nil {
+	if err = jpeg.Encode(scaledImageFile, dst, nil); err != nil {
 		ps.Logg.Error("error in encoding image: ", zap.String("name", scaledImageFile.Name()), zap.Error(err))
 		return err
 	}
@@ -112,7 +108,7 @@ type SubImager interface {
 // The resulting size is cropped from the center of the incomming image.
 func (ps *PreviewService) crop(path string, resizedImagePath string, outWidth int, outHeight int) error {
 	// Open file.
-	inputFile, err := os.Open(path)
+	inputFile, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		ps.Logg.Error("error in opening: ", zap.String("file", path), zap.Error(err))
 		return err
@@ -141,7 +137,7 @@ func (ps *PreviewService) crop(path string, resizedImagePath string, outWidth in
 
 	// -------------------------------------------------------------------------
 
-	croppedImageFile, err := os.Create(resizedImagePath)
+	croppedImageFile, err := os.Create(filepath.Clean(resizedImagePath))
 	if err != nil {
 		ps.Logg.Error("error in creating 4444: ", zap.String("file", resizedImagePath), zap.Error(err))
 		return err
@@ -157,7 +153,7 @@ func (ps *PreviewService) crop(path string, resizedImagePath string, outWidth in
 	return nil
 }
 
-// checkSize checks if the desired size of result image less than destination image
+// checkSize checks if the desired size of result image less than destination image.
 func checkSize(outWidth, outHeight, inWidth, inHeight int) bool {
 	if outWidth <= inWidth && outHeight <= inHeight {
 		return true

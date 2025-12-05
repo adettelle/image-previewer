@@ -50,7 +50,7 @@ func TestCache(t *testing.T) {
 	})
 }
 
-func TestCacheMultithreading(_ *testing.T) {
+func TestCacheMultithreading(t *testing.T) {
 	c := NewCache(10)
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
@@ -65,7 +65,7 @@ func TestCacheMultithreading(_ *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 1_000_000; i++ {
-			c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
+			c.Get(Key(strconv.Itoa(rand.Intn(1_000_000)))) //nolint:gosec
 		}
 	}()
 

@@ -11,10 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	imageAddr_2000_1000 = "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
+	pathResized         = "/tmp/images1/"
+)
+
 func TestCrop(t *testing.T) {
-	pathResized := "/tmp/images1/"
 	pathToOriginal := "/tmp/imagesOriginals1/"
-	imageAddr := "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
 	outWidth := 400
 	outHeight := 200
 
@@ -24,7 +27,7 @@ func TestCrop(t *testing.T) {
 	ds := NewDownloadService(logg)
 	ps := New(5, pathResized, pathToOriginal, ds, logg)
 
-	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
+	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr_2000_1000))
 	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
 
 	err = os.MkdirAll(pathResized, 0700)
@@ -35,7 +38,7 @@ func TestCrop(t *testing.T) {
 
 	pathToOriginalFile := pathToOriginal + originalImageName
 
-	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr, http.Header{})
+	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr_2000_1000, http.Header{})
 	require.NoError(t, err)
 
 	err = ps.crop(pathToOriginalFile, pathResized+resizedImageName, outWidth, outHeight)

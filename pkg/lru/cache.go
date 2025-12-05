@@ -36,7 +36,7 @@ type pair struct {
 	value interface{}
 }
 
-// Add a value to the cache by key,
+// Set add a value to the cache by key,
 // if it already exists, replace it with a new value.
 func (c *LruCache) Set(key Key, value interface{}) bool {
 	c.Lock()
@@ -96,6 +96,6 @@ func (c *LruCache) Clear() {
 	c.queue = NewList()
 }
 
-func (c *LruCache) PrintList() {
-	c.queue.printList()
-}
+// func (c *LruCache) PrintList() {
+// 	c.queue.printList()
+// }

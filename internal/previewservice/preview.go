@@ -1,17 +1,21 @@
 package previewservice
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/adettelle/image-previewer/pkg/lru"
 	"go.uber.org/zap"
 )
+
+const crop = "crop"
 
 type PreviewService struct {
 	Cache               lru.LruCache
@@ -21,11 +25,10 @@ type PreviewService struct {
 	Logg                *zap.Logger
 }
 
-func New(cap int, pathToResizedImage string, pathToOriginalFile string,
+func New(capacity int, pathToResizedImage string, pathToOriginalFile string,
 	downloader Downloader, logg *zap.Logger) *PreviewService {
-
 	return &PreviewService{
-		Cache:               *lru.NewCache(cap),
+		Cache:               *lru.NewCache(capacity),
 		PathToResizedImages: pathToResizedImage,
 		PathToOriginalFile:  pathToOriginalFile,
 		Downloader:          downloader,
@@ -55,10 +58,9 @@ func NewDownloadService(logg *zap.Logger) *DownloadService {
 }
 
 // returns pathToResizedImage (path + name)
-// imageAddr is like "https://" + chi.URLParam(r, "*")
-func (ps *PreviewService) GeneratePreview(outWidth int,
-	outHeight int, imageAddr string, scaleOrCrop string, headers http.Header) (ResizedImage, error) {
-
+// imageAddr is like "https://" + chi.URLParam(r, "*").
+func (ps *PreviewService) GeneratePreview(outWidth int, outHeight int,
+	imageAddr string, scaleOrCrop string, headers http.Header) (ResizedImage, error) {
 	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr))
 	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
 
@@ -79,7 +81,9 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 	pathToOriginalFile := ps.PathToOriginalFile + originalImageName
 
 	fileInfo, err := os.Stat(pathToOriginalFile)
-	if os.IsNotExist(err) {
+
+	switch {
+	case os.IsNotExist(err):
 		ps.Logg.Info("file does not exists, should be downloaded:",
 			zap.String("pathToOriginalFile", pathToOriginalFile))
 
@@ -89,11 +93,10 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 			return ResizedImage{}, err
 		}
 		ps.Logg.Info("Downloaded: ", zap.String("url", imageAddr), zap.String("in", pathToOriginalFile))
-
-	} else if err != nil {
+	case err != nil:
 		ps.Logg.Error("error in getting info: ", zap.String("file", pathToOriginalFile), zap.Error(err))
 		return ResizedImage{}, err
-	} else {
+	default:
 		ps.Logg.Info("file exists, should not be downloaded:",
 			zap.String("pathToOriginalFile", pathToOriginalFile),
 			zap.String("fileName", fileInfo.Name()))
@@ -106,7 +109,7 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 			ps.Logg.Error("error in scaling: ", zap.String("image", pathToOriginalFile), zap.Error(err))
 			return ResizedImage{}, err
 		}
-	case "crop":
+	case crop:
 		err = ps.crop(pathToOriginalFile, pathToResizedImage, outWidth, outHeight)
 		if err != nil && !errors.Is(err, ResizeError{}) {
 			ps.Logg.Error("error in cropping: ", zap.String("image", pathToOriginalFile), zap.Error(err))
@@ -121,9 +124,9 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 
 // DownloadFile will download file from a given url to a filePath.
 // It will write as it downloads (useful for large files).
-func (ds *DownloadService) DownloadFile(filePath string, url string, headers http.Header) error {
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (ds *DownloadService) DownloadFile(filePath string, url string,
+	headers http.Header) error {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		ds.Logg.Error("error in creating request: ", zap.String("url", url), zap.Error(err))
 		return err
@@ -143,9 +146,9 @@ func (ds *DownloadService) DownloadFile(filePath string, url string, headers htt
 	}
 
 	// Create the file
-	out, err := os.Create(filePath)
+	out, err := os.Create(filepath.Clean(filePath))
 	if err != nil {
-		ds.Logg.Error(" !!!!!!!!!!! error in creating file: ", zap.String("filePath", filePath), zap.Error(err))
+		ds.Logg.Error("error in creating file: ", zap.String("filePath", filePath), zap.Error(err))
 		return err
 	}
 	defer out.Close() //nolint

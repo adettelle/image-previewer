@@ -1,36 +1,37 @@
 package lru
 
-import "fmt"
-
 type ListItem struct {
 	Value interface{}
 	Next  *ListItem
 	Prev  *ListItem
 }
 
+// List represents a doubly linked list that stores its head and tail nodes
+// and keeps track of the current number of elements.
 type List struct {
 	head   *ListItem
 	tail   *ListItem
 	length int
 }
 
+// NewList creates new linled list.
 func NewList() *List {
 	return &List{}
 }
 
-func (list *List) Len() int {
+func (list *List) len() int {
 	return list.length
 }
 
-func (list *List) Front() *ListItem {
+func (list *List) front() *ListItem {
 	return list.head
 }
 
-func (list *List) Back() *ListItem {
+func (list *List) back() *ListItem {
 	return list.tail
 }
 
-// Add element to the front.
+// PushFront add element to the front.
 func (list *List) PushFront(v interface{}) *ListItem {
 	i := ListItem{Value: v}
 
@@ -49,7 +50,7 @@ func (list *List) PushFront(v interface{}) *ListItem {
 	return &i
 }
 
-// Add element to the back.
+// PushBack add element to the back.
 func (list *List) PushBack(v interface{}) *ListItem {
 	i := ListItem{Value: v}
 
@@ -68,7 +69,7 @@ func (list *List) PushBack(v interface{}) *ListItem {
 	return &i
 }
 
-// Delete the element.
+// Remove delete the element.
 // Assume that the method is called only for the elements that exist in the list.
 func (list *List) Remove(i *ListItem) {
 	if list.head == nil {
@@ -93,7 +94,7 @@ func (list *List) Remove(i *ListItem) {
 	list.length--
 }
 
-// Move the element to the beginning.
+// MoveToFront move the element to the beginning.
 // Assume that the method is called only for the elements that exist in the list.
 func (list *List) MoveToFront(i *ListItem) {
 	if i == list.head {
@@ -115,6 +116,7 @@ func (list *List) MoveToFront(i *ListItem) {
 	list.head = i
 }
 
+// DeleteLinkedList delets linked list.
 func (list *List) DeleteLinkedList() {
 	current := list.head
 	for current != nil {
@@ -129,15 +131,15 @@ func (list *List) DeleteLinkedList() {
 	list.tail = nil
 }
 
-func (list *List) printList() {
-	if list.head == nil {
-		fmt.Println("Empty Linked List")
-	} else {
-		temp := list.head
-		for temp != nil {
-			fmt.Printf("%v <-> ", temp.Value)
-			temp = temp.Next
-		}
-	}
-	fmt.Println()
-}
+// func (list *List) printList() {
+// 	if list.head == nil {
+// 		fmt.Println("Empty Linked List")
+// 	} else {
+// 		temp := list.head
+// 		for temp != nil {
+// 			fmt.Printf("%v <-> ", temp.Value)
+// 			temp = temp.Next
+// 		}
+// 	}
+// 	fmt.Println()
+// }

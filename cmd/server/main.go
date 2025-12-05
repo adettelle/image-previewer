@@ -23,7 +23,9 @@ func main() {
 	}
 }
 
-func initialize() error {
+func initialize() error { //nolint
+	var err error
+
 	startCtx := context.Background()
 	ctx, cancel := signal.NotifyContext(startCtx,
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -41,8 +43,7 @@ func initialize() error {
 		for {
 			select {
 			case <-ticker.C:
-				err := cleanUp(cfg.PathToOriginalFile, cfg.CleanPeriod)
-				if err != nil {
+				if err := cleanUp(cfg.PathToOriginalFile, cfg.CleanPeriod); err != nil {
 					log.Fatal(err)
 				}
 			case <-quit:
@@ -52,20 +53,17 @@ func initialize() error {
 	}()
 
 	logg.Info("deleting dir for resized", zap.String("dir", cfg.PathToSaveIncommingImages))
-	err := os.RemoveAll(cfg.PathToSaveIncommingImages)
-	if err != nil {
-		log.Fatal(err)
+	if err := os.RemoveAll(cfg.PathToSaveIncommingImages); err != nil {
+		log.Fatal(err) //nolint:gocritic
 	}
 
 	logg.Info("creating dir for resized", zap.String("dir", cfg.PathToSaveIncommingImages))
-	err = os.MkdirAll(cfg.PathToSaveIncommingImages, 0766)
-	if err != nil {
+	if err := os.MkdirAll(cfg.PathToSaveIncommingImages, 0750); err != nil {
 		log.Fatal(err)
 	}
 
 	logg.Info("creating temp dir for originals", zap.String("dir", cfg.PathToOriginalFile))
-	err = os.MkdirAll(cfg.PathToOriginalFile, 0766)
-	if err != nil {
+	if err := os.MkdirAll(cfg.PathToOriginalFile, 0750); err != nil {
 		log.Fatal(err)
 	}
 
@@ -78,13 +76,12 @@ func initialize() error {
 		stopCtx, cancel := context.WithTimeout(startCtx, time.Second*3)
 		defer cancel()
 
-		err := os.RemoveAll(cfg.PathToSaveIncommingImages)
-		if err != nil {
+		if err := os.RemoveAll(cfg.PathToSaveIncommingImages); err != nil {
 			log.Fatal(err)
 		}
 		logg.Info("directory is clean")
 
-		if err = server.Stop(ctx); err != nil {
+		if err := server.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server", zap.Error(err))
 		}
 
@@ -114,7 +111,7 @@ func initialize() error {
 	return nil
 }
 
-// path is dir with original files (/tmp/images/)
+// path is dir with original files (/tmp/images/).
 func cleanUp(path string, seconds int) error {
 	now := time.Now()
 

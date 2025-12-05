@@ -28,4 +28,4 @@ down:
 	docker compose down
 
 integration-tests:
-	docker compose up integration-tests
+	docker compose up integration-tests --build
