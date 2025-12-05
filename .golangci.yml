@@ -44,11 +44,11 @@ linters:
     - whitespace
 
   settings:
-    goimports:
-      local-prefixes: github.com/my/project
+    # goimports:
+    #   local-prefixes: github.com/my/project
     
-    golines:
-      max-len: 120
+    # golines:
+    #   max-len: 120
     
     funlen:
       lines: 100
