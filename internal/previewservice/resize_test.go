@@ -1,0 +1,56 @@
+package previewservice
+
+import (
+	"encoding/base64"
+	"net/http"
+	"os"
+	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+)
+
+const (
+	imageAddr_2000_1000 = "https://raw.githubusercontent.com/adettelle/image-previewer/refs/heads/create_api/examples/gopher_2000x1000.jpg"
+	pathResized         = "/tmp/images1/"
+)
+
+func TestCrop(t *testing.T) {
+	pathToOriginal := "/tmp/imagesOriginals1/"
+	outWidth := 400
+	outHeight := 200
+
+	logg, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	ds := NewDownloadService(logg)
+	ps := New(5, pathResized, pathToOriginal, ds, logg)
+
+	originalImageName := base64.StdEncoding.EncodeToString([]byte(imageAddr_2000_1000))
+	resizedImageName := originalImageName + "_" + strconv.Itoa(outWidth) + "_" + strconv.Itoa(outHeight)
+
+	err = os.MkdirAll(pathResized, 0700)
+	require.NoError(t, err)
+
+	err = os.MkdirAll(pathToOriginal, 0700)
+	require.NoError(t, err)
+
+	pathToOriginalFile := pathToOriginal + originalImageName
+
+	err = ps.Downloader.DownloadFile(pathToOriginalFile, imageAddr_2000_1000, http.Header{})
+	require.NoError(t, err)
+
+	err = ps.crop(pathToOriginalFile, pathResized+resizedImageName, outWidth, outHeight)
+	require.NoError(t, err)
+
+	actualW, actualH, err := actualSize(pathResized + resizedImageName)
+	require.NoError(t, err)
+	require.Equal(t, outWidth, actualW)
+	require.Equal(t, outHeight, actualH)
+
+	err = os.RemoveAll(pathResized)
+	require.NoError(t, err)
+	err = os.RemoveAll(pathToOriginal)
+	require.NoError(t, err)
+}

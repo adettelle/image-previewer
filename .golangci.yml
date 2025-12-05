@@ -1,0 +1,75 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+issues:
+  max-same-issues: 50
+
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bodyclose
+    - dupl
+    - durationcheck
+    - errorlint
+    - exhaustive
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    # - goimports
+    - gomoddirectives
+    - goprintffuncname
+    - gosec
+    - govet
+    - ineffassign
+    - makezero
+    - nestif
+    - nilerr
+    - noctx
+    # - nolintlint
+    - predeclared
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+
+  settings:
+    # goimports:
+    #   local-prefixes: github.com/my/project
+    
+    # golines:
+    #   max-len: 120
+    
+    funlen:
+      lines: 100
+      statements: 50
+    
+    gocognit:
+      min-complexity: 15
+    
+    gocyclo:
+      min-complexity: 15
+    
+    depguard:
+      rules:
+        main:
+          files:
+            - "!**/*_test.go"
+          allow:
+            - $gostd
+        test:
+          files:
+            - "**/*_test.go"
+          allow:
+            - $gostd
+            - github.com/stretchr/testify
