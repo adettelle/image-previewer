@@ -88,8 +88,8 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 			ps.Logg.Error("error downloading file: ", zap.String("url", imageAddr), zap.Error(err))
 			return ResizedImage{}, err
 		}
-
 		ps.Logg.Info("Downloaded: ", zap.String("url", imageAddr), zap.String("in", pathToOriginalFile))
+
 	} else if err != nil {
 		ps.Logg.Error("error in getting info: ", zap.String("file", pathToOriginalFile), zap.Error(err))
 		return ResizedImage{}, err
@@ -102,13 +102,13 @@ func (ps *PreviewService) GeneratePreview(outWidth int,
 	switch scaleOrCrop {
 	case "scale":
 		err = ps.scale(pathToOriginalFile, pathToResizedImage, outWidth, outHeight)
-		if err != nil && !errors.Is(err, ResizeError{}) { // TODO CHECK
+		if err != nil && !errors.Is(err, ResizeError{}) {
 			ps.Logg.Error("error in scaling: ", zap.String("image", pathToOriginalFile), zap.Error(err))
 			return ResizedImage{}, err
 		}
 	case "crop":
 		err = ps.crop(pathToOriginalFile, pathToResizedImage, outWidth, outHeight)
-		if err != nil && !errors.Is(err, ResizeError{}) { // TODO CHECK
+		if err != nil && !errors.Is(err, ResizeError{}) {
 			ps.Logg.Error("error in cropping: ", zap.String("image", pathToOriginalFile), zap.Error(err))
 			return ResizedImage{}, err
 		}
@@ -130,7 +130,7 @@ func (ds *DownloadService) DownloadFile(filePath string, url string, headers htt
 	}
 	req.Header = headers
 	// Get the data
-	resp, err := ds.Client.Do(req) //http.Get(url)
+	resp, err := ds.Client.Do(req)
 	if err != nil {
 		ds.Logg.Error("error in getting url: ", zap.String("url", url), zap.Error(err))
 		return err
@@ -145,7 +145,7 @@ func (ds *DownloadService) DownloadFile(filePath string, url string, headers htt
 	// Create the file
 	out, err := os.Create(filePath)
 	if err != nil {
-		ds.Logg.Error("error in creating file: ", zap.String("filePath", filePath), zap.Error(err))
+		ds.Logg.Error(" !!!!!!!!!!! error in creating file: ", zap.String("filePath", filePath), zap.Error(err))
 		return err
 	}
 	defer out.Close() //nolint

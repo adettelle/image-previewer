@@ -61,7 +61,7 @@ func (ps *PreviewService) scale(path string, resizedImagePath string, outWidth i
 			return err
 		}
 		// -----------------
-		return ResizeError{} // fmt.Errorf("nothing to resize")
+		return ResizeError{}
 	}
 
 	checkHeight := inHeight * outWidth / inWidth

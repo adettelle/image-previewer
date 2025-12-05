@@ -16,6 +16,7 @@ const (
 	defaultResize                    = "scale"
 	defaultPathToSaveIncommingImages = "./images/"
 	defaultPathToOriginalFile        = "/tmp/images/"
+	defaulCleanPeriod                = 10
 )
 
 type Config struct {
@@ -27,6 +28,7 @@ type Config struct {
 	Resize                    string
 	PathToSaveIncommingImages string
 	PathToOriginalFile        string
+	CleanPeriod               int // in minutes
 }
 
 type LoggerConf struct {
@@ -47,6 +49,7 @@ func New(ctx *context.Context) *Config {
 		Resize:                    getEnvOrDefault("RESIZE", defaultResize),
 		PathToSaveIncommingImages: defaultPathToSaveIncommingImages,
 		PathToOriginalFile:        defaultPathToOriginalFile,
+		CleanPeriod:               defaulCleanPeriod,
 	}
 
 	ensureAddrIsCorrect(cfg.Host, cfg.Port)

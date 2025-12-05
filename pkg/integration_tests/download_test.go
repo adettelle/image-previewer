@@ -34,15 +34,13 @@ func TestDownloadInexistent(t *testing.T) {
 func TestHeaderPass(t *testing.T) {
 	imageAddr := "http://previewer:8080/fill/300/200/http://nginx:80/header-check/image.jpg"
 
-	// _, err := http.Get(imageAddr)
-	// require.NoError(t, err)
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, imageAddr, nil)
 	require.NoError(t, err)
-	req.Header.Add("x-hhh", "123")
-	resp, err := client.Do(req) // http.DefaultClient.Do(req)
+	req.Header.Add("x-custom-header", "123")
+	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 

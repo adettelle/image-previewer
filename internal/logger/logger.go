@@ -19,9 +19,8 @@ func GetLogger(level string) *zap.Logger {
 	if level != "" {
 		logLevel, err = zapcore.ParseLevel(level)
 		if err != nil {
-			log.Println("unable to set level") // TODO
+			log.Println("unable to set level")
 			logLevel = zap.InfoLevel
-			// return err
 		}
 	}
 
@@ -35,6 +34,5 @@ func GetLogger(level string) *zap.Logger {
 
 	logg.Info("start logging")
 
-	// logg.Info(GetVersion())
 	return logg
 }
